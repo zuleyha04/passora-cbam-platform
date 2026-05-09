@@ -1,46 +1,54 @@
-import { useApp } from '../context/AppContext';
-import { formatEur } from '../engine/cbam';
-import styles from './Recommendations.module.css';
+import { useNavigate } from 'react-router-dom';
+import { useAppSelector, useAppDispatch } from '../store';
+import { setResult } from '../store/cbamSlice';
+import { calculateSteelEmissions, generateRecommendations, formatEur } from '../engine/cbam';
 
-const SEV_COLORS = { high: 'var(--color-danger)', medium: 'var(--color-warning)', low: 'var(--color-accent)' };
-const CAT_ICONS  = { electricity: '⚡', fuel: '🔥', transport: '🚛', supplier: '🏭', epd: '📄', general: '💡' };
+const SEV_COLOR = { high: 'badge-danger', medium: 'badge-warning', low: 'badge-accent' } as const;
+const CAT_ICON  = { electricity: '⚡', fuel: '🔥', transport: '🚛', supplier: '🏭', epd: '📄', general: '💡' } as const;
+const SEV_BAR   = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' } as const;
 
 export default function Recommendations() {
-  const { state, dispatch } = useApp();
-  const { recommendations, result } = state;
+  const dispatch  = useAppDispatch();
+  const navigate  = useNavigate();
+  const { recommendations, result, production, fuels, electricity, precursors, transport, suppliers, etsPrice } = useAppSelector(s => s.cbam);
+
+  const handleRefresh = () => {
+    try {
+      const res = calculateSteelEmissions(production, fuels, electricity, precursors, transport, etsPrice);
+      const recs = generateRecommendations(res, production, suppliers);
+      dispatch(setResult({ result: res, recommendations: recs }));
+    } catch {}
+  };
 
   if (!result) {
     return (
-      <div className={styles.recs}>
-        <div className="card" style={{ textAlign: 'center', padding: '64px 32px', color: 'var(--color-text-2)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>✦</div>
-          <div style={{ fontSize: '1rem', marginBottom: 8 }}>AI önerileri görmek için önce hesaplama yapın.</div>
-          <button className="btn btn-primary" onClick={() => dispatch({ type: 'SET_TAB', payload: 'calculator' })}>
-            ⚗ Hesaplamaya Git
-          </button>
+      <div className="p-6 max-w-4xl animate-fade-in">
+        <div className="card text-center py-20 text-slate-400">
+          <div className="text-5xl mb-4">✦</div>
+          <div className="text-base mb-5">AI önerileri görmek için önce hesaplama yapın.</div>
+          <button className="btn btn-primary" onClick={() => navigate('/calculator')}>⚗ Hesaplamaya Git</button>
         </div>
       </div>
     );
   }
 
-  const totalSavingEur = recommendations.reduce((s, r) => s + (r.potentialSavingEur ?? 0), 0);
+  const totalSavingEur  = recommendations.reduce((s, r) => s + (r.potentialSavingEur ?? 0), 0);
   const totalSavingTco2 = recommendations.reduce((s, r) => s + (r.potentialSavingTco2e ?? 0), 0);
-  const highCount = recommendations.filter(r => r.severity === 'high').length;
+  const highCount       = recommendations.filter(r => r.severity === 'high').length;
 
   return (
-    <div className={styles.recs}>
-      <div className={styles.header}>
+    <div className="flex flex-col gap-5 p-6 max-w-5xl animate-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className={styles.title}>✦ AI Destekli Öneri Paneli</h1>
-          <p className={styles.sub}>Firma başına karbon ayak izi azaltma önerileri · Kural tabanlı + literatür kaynaklı</p>
+          <h1 className="text-2xl font-extrabold text-slate-100">✦ AI Destekli Öneri Paneli</h1>
+          <p className="text-xs text-slate-500 mt-1">Kural tabanlı + DEFRA/EPD literatür kaynaklı öneriler</p>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => dispatch({ type: 'CALCULATE' })}>
-          ↺ Yenile
-        </button>
+        <button className="btn btn-ghost btn-sm" onClick={handleRefresh}>↺ Yenile</button>
       </div>
 
-      {/* Summary */}
-      <div className={styles.summaryGrid}>
+      {/* Summary KPIs */}
+      <div className="grid grid-cols-4 gap-3">
         <div className="stat-card">
           <div className="stat-label">Toplam Öneri</div>
           <div className="stat-value">{recommendations.length}</div>
@@ -48,103 +56,104 @@ export default function Recommendations() {
         </div>
         <div className="stat-card">
           <div className="stat-label">Potansiyel Tasarruf</div>
-          <div className="stat-value" style={{ color: 'var(--color-accent)', fontSize: '1.4rem' }}>{formatEur(totalSavingEur)}</div>
+          <div className="stat-value text-emerald-400 text-2xl">{formatEur(totalSavingEur)}</div>
           <div className="stat-unit">çeyreklik tahmini</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">CO₂ Azaltım Potansiyeli</div>
-          <div className="stat-value" style={{ color: 'var(--color-primary)' }}>{totalSavingTco2.toFixed(1)}</div>
+          <div className="stat-label">CO₂ Azaltım Pot.</div>
+          <div className="stat-value text-primary">{totalSavingTco2.toFixed(1)}</div>
           <div className="stat-unit">tCO₂e çeyreklik</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Sistem Durumu</div>
-          <div className="stat-value" style={{ color: result.status === 'above' ? 'var(--color-danger)' : 'var(--color-accent)', fontSize: '1.1rem' }}>
-            {result.status === 'above' ? '▲ EPD Üstünde' : '▼ EPD Altında'}
+          <div className="stat-label">EPD Durumu</div>
+          <div className={`stat-value text-lg ${result.status === 'above' ? 'text-red-400' : 'text-emerald-400'}`}>
+            {result.status === 'above' ? '▲ Üstünde' : '▼ Altında'}
           </div>
-          <div className="stat-unit">Spesifik: {result.specificEmbedded.toFixed(4)} tCO₂e/ton</div>
+          <div className="stat-unit">{result.specificEmbedded.toFixed(4)} tCO₂e/ton</div>
         </div>
       </div>
 
-      {/* Recommendation cards */}
-      <div className={styles.recList}>
+      {/* Recommendation Cards */}
+      <div className="flex flex-col gap-3">
         {recommendations.map((rec, i) => (
-          <div key={rec.id} className={styles.recCard} style={{ animationDelay: `${i * 60}ms` }}>
-            <div className={styles.recLeft}>
-              <div className={styles.recIcon}>{CAT_ICONS[rec.category]}</div>
+          <div key={rec.id}
+            className="bg-surface border border-white/[0.08] rounded-xl overflow-hidden flex hover:border-white/[0.15] hover:translate-x-1 transition-all animate-fade-in"
+            style={{ animationDelay: `${i * 60}ms` }}>
+            {/* Severity bar */}
+            <div className="w-1 flex-shrink-0" style={{ background: SEV_BAR[rec.severity] }} />
+            {/* Icon */}
+            <div className="flex items-start px-4 py-4">
+              <span className="text-2xl">{CAT_ICON[rec.category]}</span>
             </div>
-            <div className={styles.recBody}>
-              <div className={styles.recHeader}>
-                <h3 className={styles.recTitle}>{rec.title}</h3>
-                <div className={styles.recMeta}>
-                  <span className={`badge ${rec.severity === 'high' ? 'badge-danger' : rec.severity === 'medium' ? 'badge-warning' : 'badge-accent'}`}>
+            {/* Content */}
+            <div className="flex-1 py-4 pr-5">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h3 className="font-bold text-slate-100 text-sm">{rec.title}</h3>
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <span className={`badge ${SEV_COLOR[rec.severity]}`}>
                     {rec.severity === 'high' ? 'Yüksek' : rec.severity === 'medium' ? 'Orta' : 'Düşük'}
                   </span>
                   <span className="badge badge-ghost">{rec.source}</span>
                 </div>
               </div>
-              <p className={styles.recDesc}>{rec.description}</p>
-              <div className={styles.recFooter}>
-                <div className={styles.recSavings}>
+              <p className="text-xs text-slate-400 leading-relaxed mb-3">{rec.description}</p>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex flex-wrap gap-4">
                   {rec.potentialSavingTco2e !== undefined && (
-                    <span className={styles.saving}>
+                    <span className="text-xs font-mono font-semibold text-primary">
                       🌱 {rec.potentialSavingTco2e.toFixed(2)} tCO₂e azaltım
                     </span>
                   )}
                   {rec.potentialSavingEur !== undefined && (
-                    <span className={styles.saving} style={{ color: 'var(--color-accent)' }}>
+                    <span className="text-xs font-mono font-semibold text-emerald-400">
                       💰 {formatEur(rec.potentialSavingEur)} tasarruf
                     </span>
                   )}
                 </div>
-                <div className={styles.recAction}>
-                  <strong>→ Eylem:</strong> {rec.action}
+                <div className="text-xs text-slate-500">
+                  <strong className="text-slate-400">→ Eylem:</strong> {rec.action}
                 </div>
               </div>
             </div>
-            <div className={styles.recSeverityBar} style={{ background: SEV_COLORS[rec.severity] }} />
           </div>
         ))}
       </div>
 
-      {/* Operational tips */}
+      {/* Operational Tips */}
       <div className="card">
-        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 16 }}>
-          🌱 Operasyonel Sürdürülebilirlik Önerileri
-        </div>
-        <div className={styles.tipsGrid}>
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">🌱 Operasyonel Öneriler</div>
+        <div className="grid grid-cols-3 gap-3">
           {[
-            { icon: '☀️', title: 'Güneş Enerjisi', desc: 'Yakın bölgedeki güneş potansiyeli değerlendirin. Çatı güneş paneli ile grid elektriği azaltın.' },
-            { icon: '♻️', title: 'Hurda Oranı', desc: 'EAF hurda girdisini artırarak özgül emisyonu düşürün. Her %10 hurda artışı = ~%5 emisyon azalması.' },
-            { icon: '🚂', title: 'Lojistik Modu', desc: 'DEFRA\'ya göre demiryolu, karayolundan %65 daha düşük emisyona sahip. Uzun mesafeli taşımada tercih edin.' },
-            { icon: '📄', title: 'EPD Belgesi', desc: 'Tedarikçinizden EPD belgesi talep edin. Varsayılan değer cezasından kurtulun.' },
-            { icon: '🔋', title: 'Enerji Verimliliği', desc: 'ISO 50001 enerji yönetim sistemi ile tüketimi izleyin ve optimize edin.' },
-            { icon: '🤝', title: 'Tedarikçi Eğitimi', desc: 'Tedarikçilerinize CBAM veri girişi eğitimi verin. Doğru veri = düşük maliyet.' },
+            { icon: '☀️', title: 'Güneş Enerjisi',    desc: 'Çatı güneş paneli ile grid elektriği azaltın. Her 1 MWh kendi üretim = €45 tasarruf.' },
+            { icon: '♻️', title: 'Hurda Oranı',        desc: 'EAF hurda girdisini artır. Her %10 artış ≈ %5 emisyon azalması.' },
+            { icon: '🚂', title: 'Demiryolu Lojistik', desc: 'DEFRA\'ya göre demiryolu, karayolundan %65 düşük emisyon. Uzun mesafede tercih et.' },
+            { icon: '📄', title: 'EPD Belgesi',        desc: 'Tedarikçiden EPD al. Default değer cezasından kurtulun.' },
+            { icon: '🔋', title: 'Enerji Verimliliği', desc: 'ISO 50001 ile enerji yönetim sistemi kurun.' },
+            { icon: '🤝', title: 'Tedarikçi Eğitimi', desc: 'Tedarikçilere CBAM veri girişi eğitimi verin. Doğru veri = düşük maliyet.' },
           ].map((t, i) => (
-            <div key={i} className={styles.tip}>
-              <div className={styles.tipIcon}>{t.icon}</div>
-              <div className={styles.tipTitle}>{t.title}</div>
-              <div className={styles.tipDesc}>{t.desc}</div>
+            <div key={i} className="bg-surface-2 border border-white/[0.08] rounded-xl p-4 hover:border-white/[0.15] transition-colors">
+              <div className="text-2xl mb-2">{t.icon}</div>
+              <div className="text-sm font-bold text-slate-100 mb-1">{t.title}</div>
+              <div className="text-xs text-slate-400 leading-relaxed">{t.desc}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Sources */}
+      {/* Data Sources */}
       <div className="card">
-        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
-          📚 Veri Kaynakları
-        </div>
-        <div className={styles.sources}>
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">📚 Veri Kaynakları</div>
+        <div className="flex flex-col gap-2">
           {[
-            { name: 'DEFRA', desc: 'UK Çevre, Gıda & Kırsal İşler Bakanlığı — Taşıma ve tarım emisyon faktörleri', url: 'https://www.gov.uk/government/collections/government-conversion-factors-for-company-reporting' },
-            { name: 'AB CBAM', desc: 'Reg. (EU) 2023/956 · Uygulama Kılavuzu', url: 'https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism_en' },
-            { name: 'EPD Turkey', desc: 'Çevresel Ürün Beyanı (EPD) doğrulanmış belgeler — Kardemir Steel Profiles A1-A3: 2.29 tCO₂e/ton', url: 'https://epditaly.it/epd/kardemir-steel-profiles/' },
-            { name: 'IPCC 2006', desc: 'Ulusal Sera Gazı Envanterleri — Yakıt emisyon faktörleri', url: 'https://www.ipcc-nggip.iges.or.jp/public/2006gl/' },
-            { name: 'TEIAS 2024', desc: 'Türkiye Elektrik Grid Emisyon Faktörü: 0.4437 tCO₂e/MWh', url: 'https://www.teias.gov.tr' },
+            { name: 'DEFRA 2025', desc: 'UK Çevre Bakanlığı — Taşıma ve tarım emisyon faktörleri' },
+            { name: 'AB CBAM', desc: 'Reg. (EU) 2023/956 · Uygulama Kılavuzu' },
+            { name: 'EPD Turkey', desc: 'Kardemir Steel Profiles A1-A3: 2.29 tCO₂e/ton (doğrulanmış)' },
+            { name: 'IPCC 2006', desc: 'Ulusal Sera Gazı Envanterleri — Yakıt EF' },
+            { name: 'TEIAS 2024', desc: 'Türkiye Grid Emisyon Faktörü: 0.4437 tCO₂e/MWh' },
           ].map((s, i) => (
-            <div key={i} className={styles.source}>
-              <span className="badge badge-primary" style={{ whiteSpace: 'nowrap' }}>{s.name}</span>
-              <span className={styles.sourceDesc}>{s.desc}</span>
+            <div key={i} className="flex items-start gap-3">
+              <span className="badge badge-primary flex-shrink-0">{s.name}</span>
+              <span className="text-xs text-slate-400 leading-relaxed">{s.desc}</span>
             </div>
           ))}
         </div>

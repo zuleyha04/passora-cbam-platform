@@ -1,251 +1,249 @@
-import { useApp } from '../context/AppContext';
+import { useAppSelector } from '../store';
 import { formatEur, formatNum, formatTCO2, ETS_PRICE_EUR } from '../engine/cbam';
-import styles from './Reports.module.css';
 
 function now() {
   return new Date().toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export default function Reports() {
-  const { state } = useApp();
-  const { result, company, production, period, suppliers, recommendations } = state;
+  const { result, company, production, period, suppliers, recommendations } = useAppSelector(s => s.cbam);
 
   const handlePrint = () => window.print();
-
-  const handleExportJSON = () => {
-    if (!result) return;
-    const data = { company, period, production, result, suppliers, recommendations, generatedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `passora_cbam_${period}.json`; a.click();
-  };
 
   const handleExportCSV = () => {
     if (!result) return;
     const rows = [
-      ['Alan', 'Değer', 'Birim'],
-      ['Firma', company.name, ''],
-      ['Dönem', period, ''],
-      ['Üretim', production, 'ton'],
-      ['Toplam Emisyon', result.totalEmbedded, 'tCO2e'],
-      ['Spesifik Emisyon', result.specificEmbedded, 'tCO2e/ton'],
-      ['Doğrudan Emisyon', result.directFuel, 'tCO2e'],
-      ['Dolaylı Emisyon', result.electricity, 'tCO2e'],
-      ['Precursor Emisyonu', result.precursorTotal, 'tCO2e'],
-      ['Taşıma Emisyonu', result.transportTotal, 'tCO2e'],
-      ['EPD Benchmark', result.epdBenchmarkSpecific, 'tCO2e/ton'],
-      ['EPD Durumu', result.status, ''],
-      ['CBAM Sertifika', result.certificatesRequired, 'adet'],
-      ['CBAM Maliyet', result.cbamCostEur, 'EUR'],
-      ['Hesaplama Yöntemi', result.calculationMethod, ''],
+      ['Alan','Değer','Birim'],
+      ['Firma', company.name,''],['Dönem', period,''],['Üretim', production,'ton'],
+      ['Toplam Emisyon', result.totalEmbedded,'tCO2e'],
+      ['Spesifik', result.specificEmbedded,'tCO2e/ton'],
+      ['Doğrudan', result.directFuel,'tCO2e'],['Elektrik', result.electricity,'tCO2e'],
+      ['Precursor', result.precursorTotal,'tCO2e'],['Taşıma', result.transportTotal,'tCO2e'],
+      ['EPD Benchmark', result.epdBenchmarkSpecific,'tCO2e/ton'],
+      ['CBAM Sertifika', result.certificatesRequired,'adet'],
+      ['CBAM Maliyet', result.cbamCostEur,'EUR'],
     ];
     const csv = rows.map(r => r.join(';')).join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `passora_cbam_${period}.csv`; a.click();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' }));
+    a.download = `passora_cbam_${period}.csv`; a.click();
+  };
+
+  const handleExportJSON = () => {
+    if (!result) return;
+    const data = { company, period, production, result, suppliers, recommendations, generatedAt: new Date().toISOString() };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)], { type:'application/json' }));
+    a.download = `passora_cbam_${period}.json`; a.click();
   };
 
   return (
-    <div className={styles.reports}>
-      <div className={styles.header}>
+    <div className="flex flex-col gap-5 p-6 max-w-4xl animate-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 print:hidden">
         <div>
-          <h1 className={styles.title}>↓ Raporlar & Çıktılar</h1>
-          <p className={styles.sub}>CBAM uyumlu denetime hazır rapor · {now()}</p>
+          <h1 className="text-2xl font-extrabold text-slate-100">↓ Raporlar & Çıktılar</h1>
+          <p className="text-xs text-slate-500 mt-1">CBAM uyumlu denetime hazır rapor · {now()}</p>
         </div>
-        <div className={styles.actions}>
+        <div className="flex gap-2">
           <button className="btn btn-ghost btn-sm" onClick={handleExportCSV} disabled={!result}>⬇ CSV</button>
           <button className="btn btn-ghost btn-sm" onClick={handleExportJSON} disabled={!result}>⬇ JSON</button>
-          <button className="btn btn-primary btn-sm" onClick={handlePrint}>🖨 Yazdır / PDF</button>
+          <button className="btn btn-primary btn-sm" onClick={handlePrint}>🖨 PDF / Yazdır</button>
         </div>
       </div>
 
       {!result ? (
-        <div className="card" style={{ textAlign: 'center', padding: '64px 32px', color: 'var(--color-text-2)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>↓</div>
+        <div className="card text-center py-20 text-slate-400">
+          <div className="text-5xl mb-3">↓</div>
           <div>Rapor oluşturmak için önce hesaplama yapın.</div>
         </div>
       ) : (
-        <div className={styles.reportDoc} id="cbam-report">
+        <div className="bg-surface border border-white/[0.08] rounded-2xl p-8 flex flex-col gap-0" id="cbam-report">
           {/* Report Header */}
-          <div className={styles.docHeader}>
-            <div className={styles.docLogo}>
-              <div className={styles.docLogoMark}>P</div>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-lg"
+                style={{ background:'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}>P</div>
               <div>
-                <div className={styles.docLogoName}>PASSORA</div>
-                <div className={styles.docLogoSub}>AI-Guided CBAM Compliance Platform</div>
+                <div className="font-extrabold tracking-widest text-slate-100">PASSORA</div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider">AI-Guided CBAM Compliance Platform</div>
               </div>
             </div>
-            <div className={styles.docMeta}>
-              <div className={styles.docMetaItem}><span>Tarih:</span><strong>{now()}</strong></div>
-              <div className={styles.docMetaItem}><span>Dönem:</span><strong>{period}</strong></div>
-              <div className={styles.docMetaItem}><span>Versiyon:</span><strong>1.0</strong></div>
+            <div className="flex flex-col gap-1 text-right">
+              <div className="text-xs text-slate-500">Tarih: <strong className="text-slate-300">{now()}</strong></div>
+              <div className="text-xs text-slate-500">Dönem: <strong className="text-slate-300">{period}</strong></div>
+              <div className="text-xs text-slate-500">Versiyon: <strong className="text-slate-300">1.0</strong></div>
             </div>
           </div>
 
-          <hr className="divider" />
+          <hr className="border-white/[0.08] mb-6" />
 
-          {/* Company Info */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>1. Firma Bilgileri</div>
-            <div className={styles.infoGrid}>
-              <div className={styles.infoItem}><span>Firma Adı</span><strong>{company.name}</strong></div>
-              <div className={styles.infoItem}><span>Vergi No</span><strong>{company.taxNo}</strong></div>
-              <div className={styles.infoItem}><span>Şehir</span><strong>{company.city}</strong></div>
-              <div className={styles.infoItem}><span>Sektör</span><strong>{company.sector}</strong></div>
-              <div className={styles.infoItem}><span>Raporlama Dönemi</span><strong>{period}</strong></div>
-              <div className={styles.infoItem}><span>CN Kodu</span><strong>7216 (Demir-Çelik Profil)</strong></div>
+          {/* 1. Firma */}
+          <section className="mb-6">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-3">1. Firma Bilgileri</div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                ['Firma Adı', company.name], ['Vergi No', company.taxNo], ['Şehir', company.city],
+                ['Sektör', company.sector], ['Dönem', period], ['CN Kodu', '7216 Demir-Çelik Profil'],
+              ].map(([k, v], i) => (
+                <div key={i} className="bg-surface-2 rounded-lg px-3 py-2.5">
+                  <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">{k}</div>
+                  <div className="text-sm font-semibold text-slate-100">{v}</div>
+                </div>
+              ))}
             </div>
-          </div>
+          </section>
 
-          {/* Emission Summary */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>2. Emisyon Özeti</div>
-            <table className="table">
-              <thead>
-                <tr><th>Emisyon Bileşeni</th><th>Değer (tCO₂e)</th><th>Pay (%)</th><th>Yöntem</th></tr>
-              </thead>
+          {/* 2. Emisyon Özeti */}
+          <section className="mb-6">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-3">2. Emisyon Özeti</div>
+            <table className="data-table">
+              <thead><tr><th>Bileşen</th><th>tCO₂e</th><th>Pay</th><th>Kaynak</th></tr></thead>
               <tbody>
                 {[
-                  { name: 'Doğrudan Emisyon (Yakıt/Proses)', val: result.directFuel,     src: 'IPCC 2006 / AB MRR' },
-                  { name: 'Dolaylı Emisyon (Elektrik)',       val: result.electricity,     src: 'TEIAS / Kardemir EPD' },
-                  { name: 'Precursor Gömülü Emisyonları',    val: result.precursorTotal,  src: 'Tedarikçi Verisi / EU Default' },
-                  { name: 'Taşıma Emisyonları (A4)',          val: result.transportTotal,  src: 'DEFRA 2025' },
-                ].map((r, i) => (
+                  { name:'Doğrudan (Yakıt/Proses)', val:result.directFuel,     src:'IPCC 2006 / AB MRR' },
+                  { name:'Dolaylı (Elektrik)',       val:result.electricity,     src:'TEIAS / Kardemir EPD' },
+                  { name:'Precursor Gömülü',         val:result.precursorTotal,  src:'Tedarikçi / EU Default' },
+                  { name:'Taşıma (A4)',              val:result.transportTotal,  src:'DEFRA 2025' },
+                ].map((r,i) => (
                   <tr key={i}>
                     <td>{r.name}</td>
                     <td className="font-mono">{r.val.toFixed(4)}</td>
-                    <td className="font-mono">{((r.val / result.totalEmbedded) * 100).toFixed(1)}%</td>
-                    <td style={{ color: 'var(--color-text-3)', fontSize: '0.8rem' }}>{r.src}</td>
+                    <td className="font-mono">{((r.val/result.totalEmbedded)*100).toFixed(1)}%</td>
+                    <td className="text-slate-500 text-xs">{r.src}</td>
                   </tr>
                 ))}
-                <tr style={{ fontWeight: 700, background: 'rgba(59,130,246,0.05)' }}>
-                  <td><strong>TOPLAM Gömülü Emisyon</strong></td>
-                  <td className="font-mono"><strong>{result.totalEmbedded.toFixed(4)}</strong></td>
-                  <td className="font-mono"><strong>100%</strong></td>
-                  <td></td>
+                <tr className="bg-blue-500/5 font-bold">
+                  <td>TOPLAM Gömülü Emisyon</td>
+                  <td className="font-mono">{result.totalEmbedded.toFixed(4)}</td>
+                  <td className="font-mono">100%</td>
+                  <td/>
                 </tr>
               </tbody>
             </table>
-            <div className={styles.specificBox}>
-              <div className={styles.specificItem}>
-                <span>Spesifik Emisyon:</span>
-                <strong className="font-mono">{result.specificEmbedded.toFixed(6)} tCO₂e/ton</strong>
-              </div>
-              <div className={styles.specificItem}>
-                <span>Üretim Miktarı:</span>
-                <strong className="font-mono">{formatNum(production, 0)} ton</strong>
-              </div>
-              <div className={styles.specificItem}>
-                <span>Hesaplama Yöntemi:</span>
-                <strong>{result.calculationMethod === 'actual_data' ? 'Hesaplama Tabanlı (Gerçek Veri)' : 'Default/EPD Değeri'}</strong>
-                {result.isDefaultUsed && <span className="badge badge-warning" style={{ marginLeft: 8 }}>⚠️ Tahmini</span>}
-              </div>
+            <div className="mt-3 flex flex-col gap-2 bg-blue-500/5 border border-blue-500/15 rounded-lg px-4 py-3">
+              {[
+                ['Spesifik Emisyon', `${result.specificEmbedded.toFixed(6)} tCO₂e/ton`],
+                ['Üretim', `${formatNum(production,0)} ton`],
+                ['Hesaplama Yöntemi', result.calculationMethod === 'actual_data' ? 'Gerçek Veri' : 'Default/EPD'],
+              ].map(([k,v],i) => (
+                <div key={i} className="flex justify-between text-sm text-slate-400">
+                  <span>{k}:</span>
+                  <strong className="font-mono text-slate-100">{v}</strong>
+                </div>
+              ))}
+              {result.isDefaultUsed && <span className="badge badge-warning self-start">⚠️ Tahmini Değer</span>}
             </div>
-          </div>
+          </section>
 
-          {/* Bağımlı/Bağımsız */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>3. Bağımlı / Bağımsız Karbon Tüketimi</div>
-            <div className={styles.depGrid}>
-              <div className={styles.depCard}>
-                <div className={styles.depCardTitle}>🔗 Bağımlı Emisyon</div>
-                <div className={styles.depCardValue}>{formatTCO2(result.dependentEmissions)}</div>
-                <div className={styles.depCardDesc}>Dışarıdan satın alınan elektrik ve ısıdan kaynaklanan emisyonlar (grid elektriği). Enerji sağlayıcısının karbon yoğunluğuna bağlıdır.</div>
-              </div>
-              <div className={styles.depCard}>
-                <div className={styles.depCardTitle}>🔋 Bağımsız Emisyon</div>
-                <div className={styles.depCardValue}>{formatTCO2(result.independentEmissions)}</div>
-                <div className={styles.depCardDesc}>Kendi üretim süreçlerindeki yakıt kullanımı ve precursor hammadde kaynaklı emisyonlar. Proses kontrolü ile azaltılabilir.</div>
-              </div>
+          {/* 3. Bağımlı / Bağımsız */}
+          <section className="mb-6">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-3">3. Bağımlı / Bağımsız Emisyon</div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { icon:'🔗', title:'Bağımlı', val: result.dependentEmissions, desc:'Grid elektrik — dışarıdan satın alınan enerji' },
+                { icon:'🔋', title:'Bağımsız', val: result.independentEmissions, desc:'Yerinde üretim & yakıt & precursor' },
+              ].map((d,i) => (
+                <div key={i} className="bg-surface-2 border border-white/[0.08] rounded-xl p-4">
+                  <div className="text-xs font-bold text-slate-400 mb-2">{d.icon} {d.title} Emisyon</div>
+                  <div className="text-xl font-bold font-mono text-slate-100 mb-1">{formatTCO2(d.val)}</div>
+                  <div className="text-xs text-slate-500">{d.desc}</div>
+                </div>
+              ))}
             </div>
-          </div>
+          </section>
 
-          {/* EPD Benchmark */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>4. EPD Benchmark Karşılaştırması</div>
-            <div className={styles.epdBox}>
-              <div className={styles.epdRow}>
-                <span>Hesaplanan Spesifik Emisyon:</span>
-                <strong className="font-mono">{result.specificEmbedded.toFixed(6)} tCO₂e/ton</strong>
-              </div>
-              <div className={styles.epdRow}>
-                <span>Kardemir EPD A1-A3 (Referans):</span>
-                <strong className="font-mono">2.290000 tCO₂e/ton</strong>
-              </div>
-              <div className={styles.epdRow}>
-                <span>Fark:</span>
-                <strong className="font-mono" style={{ color: result.status === 'above' ? 'var(--color-danger)' : 'var(--color-accent)' }}>
-                  {result.diffVsEpd > 0 ? '+' : ''}{result.diffVsEpd.toFixed(6)} tCO₂e/ton
-                </strong>
-              </div>
-              <div className={styles.epdRow}>
+          {/* 4. EPD */}
+          <section className="mb-6">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-3">4. EPD Benchmark Karşılaştırması</div>
+            <div className="flex flex-col gap-2 bg-surface-2 border border-white/[0.08] rounded-xl px-4 py-3">
+              {[
+                ['Hesaplanan Spesifik', `${result.specificEmbedded.toFixed(6)} tCO₂e/ton`],
+                ['Kardemir EPD A1-A3', '2.290000 tCO₂e/ton'],
+                ['Fark', `${result.diffVsEpd > 0 ? '+' : ''}${result.diffVsEpd.toFixed(6)} tCO₂e/ton`],
+              ].map(([k,v],i) => (
+                <div key={i} className="flex justify-between items-center text-sm text-slate-400 py-1 border-b border-white/[0.05] last:border-0">
+                  <span>{k}:</span>
+                  <strong className="font-mono" style={{ color: i === 2 ? (result.status==='above'?'#ef4444':'#10b981') : '#f1f5f9' }}>{v}</strong>
+                </div>
+              ))}
+              <div className="flex justify-between items-center text-sm text-slate-400 pt-1">
                 <span>Durum:</span>
-                <span className={`badge ${result.status === 'above' ? 'badge-danger' : 'badge-accent'}`}>
-                  {result.status === 'above' ? '▲ EPD Benchmark Üstünde' : '▼ EPD Benchmark Altında'}
+                <span className={`badge ${result.status==='above'?'badge-danger':'badge-accent'}`}>
+                  {result.status==='above' ? '▲ EPD Üstünde' : '▼ EPD Altında'}
                 </span>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* CBAM Cost */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>5. CBAM Maliyet Analizi</div>
-            <div className={styles.costGrid}>
-              <div className={styles.costItem}><span>CBAM Sertifika Adedi:</span><strong className="font-mono">{formatNum(result.certificatesRequired, 4)}</strong></div>
-              <div className={styles.costItem}><span>ETS Birim Fiyatı (Q1 2026):</span><strong className="font-mono">€{ETS_PRICE_EUR}/tCO₂e</strong></div>
-              <div className={styles.costItem}><span>Toplam CBAM Maliyeti:</span><strong className="font-mono" style={{ color: 'var(--color-danger)', fontSize: '1.1rem' }}>{formatEur(result.cbamCostEur)}</strong></div>
-              <div className={styles.costItem}><span>Tahmini Yıllık Maliyet:</span><strong className="font-mono">{formatEur(result.cbamCostEur * 4)}</strong></div>
+          {/* 5. CBAM Maliyet */}
+          <section className="mb-6">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-3">5. CBAM Maliyet Analizi</div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ['CBAM Sertifika', `${formatNum(result.certificatesRequired,4)} adet`],
+                ['ETS Birim Fiyatı (Q1 2026)', `€${ETS_PRICE_EUR}/tCO₂e`],
+                ['Toplam CBAM Maliyeti', formatEur(result.cbamCostEur)],
+                ['Tahmini Yıllık Maliyet', formatEur(result.cbamCostEur*4)],
+              ].map(([k,v],i) => (
+                <div key={i} className="flex justify-between items-center bg-surface-2 border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-slate-400">
+                  <span>{k}:</span>
+                  <strong className="font-mono text-slate-100">{v}</strong>
+                </div>
+              ))}
             </div>
-          </div>
+          </section>
 
-          {/* Tedarikçi */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>6. Tedarikçi Karması</div>
-            <table className="table">
-              <thead>
-                <tr><th>Tedarikçi</th><th>Teknoloji</th><th>Ülke</th><th>Pay (%)</th><th>EF (tCO₂e/ton)</th><th>Ağırlıklı EF</th></tr>
-              </thead>
+          {/* 6. Tedarikçi */}
+          <section className="mb-6">
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-3">6. Tedarikçi Karması</div>
+            <table className="data-table">
+              <thead><tr><th>Tedarikçi</th><th>Teknoloji</th><th>Ülke</th><th>Pay</th><th>EF</th><th>Ağırlıklı EF</th></tr></thead>
               <tbody>
-                {suppliers.map((s, i) => (
+                {suppliers.map((s,i) => (
                   <tr key={i}>
-                    <td>{s.name}</td>
-                    <td><span className={`badge ${s.type === 'BOF' ? 'badge-danger' : 'badge-accent'}`}>{s.type}</span></td>
+                    <td className="font-semibold">{s.name}</td>
+                    <td><span className={`badge ${s.type==='BOF'?'badge-danger':'badge-accent'}`}>{s.type}</span></td>
                     <td>{s.country}</td>
                     <td className="font-mono">{s.share}%</td>
                     <td className="font-mono">{s.specificEf}</td>
-                    <td className="font-mono">{((s.share / 100) * s.specificEf).toFixed(4)}</td>
+                    <td className="font-mono">{((s.share/100)*s.specificEf).toFixed(4)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </section>
 
-          {/* Recommendations summary */}
+          {/* 7. AI Öneriler */}
           {recommendations.length > 0 && (
-            <div className={styles.section}>
-              <div className={styles.sectionTitle}>7. AI Öneri Özeti</div>
-              <div className={styles.recSummaryList}>
-                {recommendations.map((r, i) => (
-                  <div key={i} className={styles.recSummaryItem}>
-                    <span className={`badge ${r.severity === 'high' ? 'badge-danger' : r.severity === 'medium' ? 'badge-warning' : 'badge-accent'}`}>
-                      {r.severity === 'high' ? 'Yüksek' : r.severity === 'medium' ? 'Orta' : 'Düşük'}
+            <section className="mb-6">
+              <div className="text-xs font-bold text-primary uppercase tracking-wider mb-3">7. AI Öneri Özeti</div>
+              <div className="flex flex-col gap-2">
+                {recommendations.map((r,i) => (
+                  <div key={i} className="flex items-center gap-3 bg-surface-2 rounded-lg px-4 py-2.5">
+                    <span className={`badge ${SEV_COLOR[r.severity]} flex-shrink-0`}>
+                      {r.severity==='high'?'Yüksek':r.severity==='medium'?'Orta':'Düşük'}
                     </span>
-                    <span className={styles.recSummaryTitle}>{r.title.replace(/[⚠️📊☀️🚂🏭🔥💡]/g, '').trim()}</span>
-                    {r.potentialSavingEur && <span className={styles.recSummarySaving}>{formatEur(r.potentialSavingEur)}</span>}
+                    <span className="text-sm text-slate-200 flex-1">{r.title.replace(/[⚠️📊☀️🚂🏭🔥💡]/g,'').trim()}</span>
+                    {r.potentialSavingEur && (
+                      <span className="text-xs font-mono text-emerald-400 flex-shrink-0">{formatEur(r.potentialSavingEur)}</span>
+                    )}
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
           {/* Footer */}
-          <div className={styles.docFooter}>
-            <div>Bu rapor PASSORA CBAM Uyum Platformu tarafından otomatik oluşturulmuştur.</div>
-            <div>Referans: CBAM Reg. (EU) 2023/956 · DEFRA 2025 · IPCC 2006 · Kardemir EPD</div>
-            <div>Veriler {result.isDefaultUsed ? 'kısmen varsayılan değer içermektedir (⚠️ tahmini)' : 'gerçek ölçüm verilerine dayanmaktadır'}.</div>
+          <div className="pt-4 border-t border-white/[0.06] text-center flex flex-col gap-1">
+            <div className="text-[10px] text-slate-600">Bu rapor PASSORA CBAM Uyum Platformu tarafından otomatik oluşturulmuştur.</div>
+            <div className="text-[10px] text-slate-600">Ref: CBAM Reg. (EU) 2023/956 · DEFRA 2025 · IPCC 2006 · Kardemir EPD</div>
+            {result.isDefaultUsed && <div className="text-[10px] text-amber-600">⚠️ Veriler kısmen varsayılan değer içermektedir.</div>}
           </div>
         </div>
       )}
     </div>
   );
 }
+
+const SEV_COLOR = { high: 'badge-danger', medium: 'badge-warning', low: 'badge-accent' } as const;
