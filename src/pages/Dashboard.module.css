@@ -1,0 +1,78 @@
+.dashboard { display: flex; flex-direction: column; gap: 20px; padding: 24px; max-width: 1200px; }
+
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.title { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #f1f5f9, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { color: var(--color-text-3); font-size: 0.875rem; margin-top: 4px; }
+.headerActions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.kpiGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 1024px) { .kpiGrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .kpiGrid { grid-template-columns: 1fr; } }
+
+.kpiPrimary::before { background: var(--grad-primary) !important; opacity: 1 !important; }
+.kpiDanger::before  { background: var(--grad-danger)  !important; opacity: 1 !important; }
+.kpiAccent::before  { background: var(--grad-accent)  !important; opacity: 1 !important; }
+
+.kpiSub { font-size: 0.7rem; color: var(--color-text-3); margin-top: 4px; }
+
+.defaultWarning { animation: fadeIn 0.4s ease; }
+
+.chartsRow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .chartsRow { grid-template-columns: 1fr; } }
+
+.chartCard { }
+.chartTitle { font-size: 0.8rem; font-weight: 700; color: var(--color-text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+
+.breakdownCard { }
+.breakdownGrid { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: start; }
+@media (max-width: 700px) { .breakdownGrid { grid-template-columns: 1fr; } }
+
+.breakdownBars { display: flex; flex-direction: column; gap: 12px; }
+.breakdownBar { display: grid; grid-template-columns: 120px 1fr 70px 48px; align-items: center; gap: 10px; }
+.breakdownLabel { font-size: 0.8rem; color: var(--color-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.breakdownTrack { height: 8px; background: var(--color-surface-3); border-radius: 999px; overflow: hidden; }
+.breakdownFill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+.breakdownValue { font-size: 0.8rem; font-family: var(--font-mono); color: var(--color-text); text-align: right; }
+.breakdownPct { font-size: 0.7rem; color: var(--color-text-3); text-align: right; }
+
+.depIndBox { display: flex; flex-direction: column; gap: 12px; min-width: 180px; }
+.depItem { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 12px 14px; }
+.depLabel { font-size: 0.7rem; font-weight: 700; color: var(--color-text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.depValue { font-size: 1rem; font-weight: 700; color: var(--color-text); margin: 4px 0 2px; font-family: var(--font-mono); }
+.depHint { font-size: 0.65rem; color: var(--color-text-3); }
+
+.steps { display: flex; align-items: flex-start; gap: 0; overflow-x: auto; padding-bottom: 4px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; min-width: 110px; flex: 1; text-align: center; }
+.stepNum {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.8rem;
+}
+.stepDone .stepNum { background: var(--grad-accent); color: #fff; box-shadow: var(--shadow-accent); }
+.stepPending .stepNum { background: var(--color-surface-2); color: var(--color-text-3); border: 1px solid var(--color-border); }
+.stepLabel { font-size: 0.75rem; font-weight: 600; color: var(--color-text); }
+.stepDesc { font-size: 0.65rem; color: var(--color-text-3); }
+.stepArrow { position: absolute; right: -10px; top: 10px; color: var(--color-text-3); font-size: 0.9rem; z-index: 1; }
+
+.sectorGrid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.sectorChip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 500;
+  border: 1px solid transparent; transition: var(--transition);
+}
+.sectorActive { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.3); color: #93c5fd; }
+.sectorInactive { background: var(--color-surface-2); border-color: var(--color-border); color: var(--color-text-3); }
+.sectorBadge { background: var(--color-primary); color: #fff; font-size: 0.6rem; padding: 1px 6px; border-radius: 999px; }
+
+.greenDeal { background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); border-radius: var(--radius); padding: 14px 16px; }
+.greenDealTitle { font-size: 0.8rem; font-weight: 700; color: var(--color-accent); margin-bottom: 8px; }
+.greenDealText { font-size: 0.8rem; color: var(--color-text-2); line-height: 1.6; }
+
+.bottomRow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .bottomRow { grid-template-columns: 1fr; } }
+
+.timeline { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+.timelineItem { display: flex; align-items: flex-start; gap: 12px; }
+.timelineDot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.timelineDate { font-size: 0.7rem; color: var(--color-text-3); font-family: var(--font-mono); }
+.timelineEvent { font-size: 0.85rem; font-weight: 600; color: var(--color-text); }

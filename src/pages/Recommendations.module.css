@@ -1,0 +1,64 @@
+.recs { display: flex; flex-direction: column; gap: 20px; padding: 24px; max-width: 1100px; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.title { font-size: 1.5rem; font-weight: 800; color: var(--color-text); }
+.sub { font-size: 0.8rem; color: var(--color-text-3); margin-top: 4px; }
+.summaryGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 900px) { .summaryGrid { grid-template-columns: repeat(2, 1fr); } }
+
+.recList { display: flex; flex-direction: column; gap: 12px; }
+
+.recCard {
+  display: flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  animation: fadeIn 0.4s ease both;
+  transition: var(--transition);
+}
+.recCard:hover { border-color: var(--color-border-2); transform: translateX(4px); }
+
+.recSeverityBar { width: 4px; flex-shrink: 0; }
+
+.recLeft {
+  display: flex;
+  align-items: flex-start;
+  padding: 18px 14px 18px 16px;
+}
+.recIcon { font-size: 1.6rem; line-height: 1; }
+
+.recBody { flex: 1; padding: 16px 20px 16px 0; }
+
+.recHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.recTitle { font-size: 0.95rem; font-weight: 700; color: var(--color-text); }
+.recMeta { display: flex; gap: 6px; flex-shrink: 0; }
+.recDesc { font-size: 0.83rem; color: var(--color-text-2); line-height: 1.6; margin-bottom: 10px; }
+
+.recFooter { display: flex; flex-direction: column; gap: 6px; }
+.recSavings { display: flex; flex-wrap: wrap; gap: 12px; }
+.saving { font-size: 0.78rem; font-weight: 600; color: var(--color-primary); font-family: var(--font-mono); }
+.recAction { font-size: 0.78rem; color: var(--color-text-2); }
+
+.tipsGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 900px) { .tipsGrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .tipsGrid { grid-template-columns: 1fr; } }
+
+.tip {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: var(--transition);
+}
+.tip:hover { border-color: var(--color-border-2); }
+.tipIcon { font-size: 1.5rem; }
+.tipTitle { font-size: 0.875rem; font-weight: 700; color: var(--color-text); }
+.tipDesc { font-size: 0.78rem; color: var(--color-text-2); line-height: 1.5; }
+
+.sources { display: flex; flex-direction: column; gap: 10px; }
+.source { display: flex; align-items: flex-start; gap: 10px; }
+.sourceDesc { font-size: 0.78rem; color: var(--color-text-2); line-height: 1.5; flex: 1; }
