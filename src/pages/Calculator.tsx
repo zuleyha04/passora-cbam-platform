@@ -7,7 +7,7 @@ import {
   updateTransport, setProduction, setPeriod, setResult,
 } from '../store/cbamSlice';
 import { calculateSteelEmissions, generateRecommendations, formatNum, formatEur, formatTCO2 } from '../engine/cbam';
-import { useSaveCalculationMutation } from '../store/api';
+import { useServerCalculateMutation } from '../store/api';
 
 type Tab = 'fuel' | 'electricity' | 'precursor' | 'transport' | 'results';
 
@@ -16,47 +16,66 @@ export default function Calculator() {
   const navigate  = useNavigate();
   const [tab, setTab] = useState<Tab>('fuel');
   const [saving, setSaving] = useState(false);
+  const [useServer, setUseServer] = useState(false);
 
   const { fuels, electricity, precursors, transport, production, period, result, etsPrice, company, suppliers } = useAppSelector(s => s.cbam);
-  const [saveCalc] = useSaveCalculationMutation();
+  const [serverCalc, { isLoading: isServerCalcLoading }] = useServerCalculateMutation();
 
-  const handleCalculate = () => {
-    try {
-      const res = calculateSteelEmissions(production, fuels, electricity, precursors, transport, etsPrice);
-      const recs = generateRecommendations(res, production, suppliers);
-      dispatch(setResult({ result: res, recommendations: recs }));
-      setTab('results');
-    } catch (e) { alert('Hesaplama hatası: ' + (e as Error).message); }
+  // ── Hesaplama: server veya local ────────────────────────────
+  const handleCalculate = async () => {
+    if (useServer) {
+      // Server-side: /api/calculate
+      try {
+        const resp = await serverCalc({
+          production, fuels, electricity, precursors, transport,
+          etsPrice, company, period, saveToDb: false,
+        }).unwrap();
+        const serverResult = resp.data as Record<string, number | string | boolean | null>;
+        // Map server response to local SteelEmissionResult shape
+        const mapped = {
+          directFuel:           serverResult.directFuel           as number,
+          electricity:          serverResult.electricity          as number,
+          precursorTotal:       serverResult.precursorTotal       as number,
+          transportTotal:       serverResult.transportTotal       as number,
+          totalEmbedded:        serverResult.totalEmbedded        as number,
+          specificEmbedded:     serverResult.specificEmbedded     as number,
+          certificatesRequired: serverResult.certificatesRequired as number,
+          cbamCostEur:          serverResult.cbamCostEur          as number,
+          epdBenchmarkSpecific: serverResult.epdBenchmarkSpecific as number,
+          diffVsEpd:            serverResult.diffVsEpd            as number,
+          status:               serverResult.status               as 'above' | 'below' | 'equal',
+          isDefaultUsed:        serverResult.isDefaultUsed        as boolean,
+          calculationMethod:    serverResult.calculationMethod    as string,
+          dependentEmissions:   serverResult.dependentEmissions   as number,
+          independentEmissions: serverResult.independentEmissions as number,
+        };
+        const recs = generateRecommendations(mapped as Parameters<typeof generateRecommendations>[0], production, suppliers);
+        dispatch(setResult({ result: mapped as Parameters<typeof setResult>[0]['result'], recommendations: recs }));
+        setTab('results');
+      } catch (e) { alert('Sunucu hatası: ' + (e as Error).message); }
+    } else {
+      // Local (offline) hesaplama
+      try {
+        const res = calculateSteelEmissions(production, fuels, electricity, precursors, transport, etsPrice);
+        const recs = generateRecommendations(res, production, suppliers);
+        dispatch(setResult({ result: res, recommendations: recs }));
+        setTab('results');
+      } catch (e) { alert('Hesaplama hatası: ' + (e as Error).message); }
+    }
   };
 
   const handleSave = async () => {
     if (!result) return;
     setSaving(true);
     try {
-      await saveCalc({
-        company_name: company.name,
-        tax_no: company.taxNo,
-        city: company.city,
-        period,
-        production_ton: production,
-        direct_fuel_tco2: result.directFuel,
-        electricity_tco2: result.electricity,
-        precursor_tco2: result.precursorTotal,
-        transport_tco2: result.transportTotal,
-        total_embedded_tco2: result.totalEmbedded,
-        specific_embedded: result.specificEmbedded,
-        cbam_cost_eur: result.cbamCostEur,
-        ets_price: etsPrice,
-        calculation_method: result.calculationMethod,
-        is_default_used: result.isDefaultUsed,
-        epd_benchmark: result.epdBenchmarkSpecific,
-        diff_vs_epd: result.diffVsEpd,
-        status: result.status,
-        input_data: { fuels, electricity, precursors, transport },
-      });
-      alert('✅ Hesaplama Supabase\'e kaydedildi!');
+      // /api/calculate ile saveToDb=true gönder (tek istekte hesapla+kaydet)
+      await serverCalc({
+        production, fuels, electricity, precursors, transport,
+        etsPrice, company, period, saveToDb: true,
+      }).unwrap();
+      alert('✅ Hesaplama sunucuya kaydedildi!');
     } catch {
-      alert('Kayıt hatası — Supabase bağlantısı kontrol edin');
+      alert('Kayıt hatası — Backend/Supabase bağlantısı kontrol edin');
     } finally { setSaving(false); }
   };
 
@@ -89,7 +108,16 @@ export default function Calculator() {
               {['2026-Q1','2026-Q2','2026-Q3','2026-Q4'].map(p => <option key={p}>{p}</option>)}
             </select>
           </div>
-          <button className="btn btn-primary" onClick={handleCalculate}>⚡ Hesapla</button>
+          <button className="btn btn-primary" onClick={handleCalculate} disabled={isServerCalcLoading}>
+            {isServerCalcLoading ? '⏳ Sunucu...' : '⚡ Hesapla'}
+          </button>
+          <button
+            className={`btn btn-sm ${useServer ? 'btn-accent' : 'btn-ghost'}`}
+            onClick={() => setUseServer(v => !v)}
+            title={useServer ? '/api/calculate (sunucu)' : 'Yerel hesaplama (offline)'}
+          >
+            {useServer ? '🌐 Sunucu' : '💻 Yerel'}
+          </button>
           {result && (
             <button className="btn btn-ghost" onClick={handleSave} disabled={saving}>
               {saving ? '...' : '☁️ Kaydet'}

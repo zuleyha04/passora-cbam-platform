@@ -1,85 +1,87 @@
-// ============================================================
-// RTK Query API — Supabase REST endpoints
-// ============================================================
-import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
-import { supabase, type DbCalculation, type DbSupplier, type DbEmissionFactor } from '../lib/supabase';
+/**
+ * RTK Query API — Netlify Functions backend'ine bağlanır
+ * Client asla Supabase key'i görmez, her istek /api/* üzerinden gider
+ */
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { DbCalculation } from '../lib/supabase';
+
+// Dev'de localhost:8888 (netlify dev), prod'da aynı domain
+const BASE_URL = import.meta.env.DEV
+  ? 'http://localhost:8888/api'
+  : '/api';
 
 export const passoraApi = createApi({
   reducerPath: 'passoraApi',
-  baseQuery: fakeBaseQuery(),
+  baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
   tagTypes: ['Calculation', 'Supplier', 'EmissionFactor'],
 
   endpoints: (builder) => ({
 
-    // ── Calculations ──────────────────────────────────────────
-    getCalculations: builder.query<DbCalculation[], string>({
-      queryFn: async (companyName) => {
-        const { data, error } = await supabase
-          .from('calculations')
-          .select('*')
-          .eq('company_name', companyName)
-          .order('created_at', { ascending: false });
-        if (error) return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-        return { data: data ?? [] };
+    // ── POST /api/calculate ───────────────────────────────────
+    serverCalculate: builder.mutation<
+      { ok: boolean; data: Record<string, number | string | boolean | null> },
+      {
+        production: number;
+        fuels: unknown[];
+        electricity: unknown;
+        precursors: unknown[];
+        transport: unknown[];
+        etsPrice: number;
+        company: { name: string; taxNo: string; city: string; sector: string };
+        period: string;
+        saveToDb?: boolean;
+      }
+    >({
+      queryFn: async (arg, _api, _extra, baseQuery) => {
+        const result = await baseQuery({ url: 'calculate', method: 'POST', body: arg });
+        if (result.error) return { error: result.error };
+        return { data: result.data as { ok: boolean; data: Record<string, number | string | boolean | null> } };
       },
+      invalidatesTags: (_, __, arg) => arg.saveToDb ? ['Calculation'] : [],
+    }),
+
+    // ── GET /api/calculations?company=X ──────────────────────
+    getCalculations: builder.query<DbCalculation[], string>({
+      query: (company) => `calculations?company=${encodeURIComponent(company)}`,
+      transformResponse: (res: { ok: boolean; data: DbCalculation[] }) => res.data ?? [],
       providesTags: ['Calculation'],
     }),
 
+    // ── POST /api/calculations ────────────────────────────────
     saveCalculation: builder.mutation<DbCalculation, Omit<DbCalculation, 'id' | 'created_at'>>({
-      queryFn: async (payload) => {
-        const { data, error } = await supabase
-          .from('calculations')
-          .insert(payload)
-          .select()
-          .single();
-        if (error) return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-        return { data };
-      },
+      query: (body) => ({ url: 'calculations', method: 'POST', body }),
+      transformResponse: (res: { ok: boolean; data: DbCalculation }) => res.data,
       invalidatesTags: ['Calculation'],
     }),
 
+    // ── DELETE /api/calculations?id=X ────────────────────────
     deleteCalculation: builder.mutation<void, string>({
-      queryFn: async (id) => {
-        const { error } = await supabase.from('calculations').delete().eq('id', id);
-        if (error) return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-        return { data: undefined };
-      },
+      query: (id) => ({ url: `calculations?id=${id}`, method: 'DELETE' }),
       invalidatesTags: ['Calculation'],
     }),
 
-    // ── Suppliers ─────────────────────────────────────────────
-    getSuppliers: builder.query<DbSupplier[], string>({
-      queryFn: async (companyName) => {
-        const { data, error } = await supabase
-          .from('suppliers')
-          .select('*')
-          .eq('company_name', companyName);
-        if (error) return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-        return { data: data ?? [] };
-      },
+    // ── GET /api/suppliers?company=X ─────────────────────────
+    getSuppliers: builder.query<unknown[], string>({
+      query: (company) => `suppliers?company=${encodeURIComponent(company)}`,
+      transformResponse: (res: { ok: boolean; data: unknown[] }) => res.data ?? [],
       providesTags: ['Supplier'],
     }),
 
-    upsertSuppliers: builder.mutation<void, DbSupplier[]>({
-      queryFn: async (suppliers) => {
-        const { error } = await supabase.from('suppliers').upsert(suppliers);
-        if (error) return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-        return { data: undefined };
-      },
+    // ── POST /api/suppliers ───────────────────────────────────
+    upsertSuppliers: builder.mutation<void, { company_name: string; suppliers: unknown[] }>({
+      query: (body) => ({ url: 'suppliers', method: 'POST', body }),
       invalidatesTags: ['Supplier'],
     }),
 
-    // ── Emission Factors ──────────────────────────────────────
-    getEmissionFactors: builder.query<DbEmissionFactor[], void>({
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('emission_factors')
-          .select('*')
-          .eq('is_default', true)
-          .order('valid_from', { ascending: false });
-        if (error) return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-        return { data: data ?? [] };
+    // ── GET /api/emission-factors ─────────────────────────────
+    getEmissionFactors: builder.query<unknown[], { type?: string; source?: string } | void>({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params?.type)   q.set('type', params.type);
+        if (params?.source) q.set('source', params.source);
+        return `emission-factors${q.toString() ? '?' + q.toString() : ''}`;
       },
+      transformResponse: (res: { ok: boolean; data: unknown[] }) => res.data ?? [],
       providesTags: ['EmissionFactor'],
     }),
 
@@ -87,6 +89,7 @@ export const passoraApi = createApi({
 });
 
 export const {
+  useServerCalculateMutation,
   useGetCalculationsQuery,
   useSaveCalculationMutation,
   useDeleteCalculationMutation,
