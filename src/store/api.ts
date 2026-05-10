@@ -5,10 +5,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { DbCalculation } from '../lib/supabase';
 
-// Dev'de localhost:8888 (netlify dev), prod'da aynı domain
-const BASE_URL = import.meta.env.DEV
-  ? 'http://localhost:8888/api'
-  : '/api';
+// Vercel deployment veya lokal proxy ile her zaman /api üzerinden çalışır
+const BASE_URL = '/api';
 
 export const passoraApi = createApi({
   reducerPath: 'passoraApi',
