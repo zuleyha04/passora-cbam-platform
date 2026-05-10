@@ -41,11 +41,12 @@ export default function Calculator() {
           specificEmbedded:     serverResult.specificEmbedded     as number,
           certificatesRequired: serverResult.certificatesRequired as number,
           cbamCostEur:          serverResult.cbamCostEur          as number,
+          epdBenchmarkTotal:    serverResult.epdBenchmarkTotal    as number,
           epdBenchmarkSpecific: serverResult.epdBenchmarkSpecific as number,
           diffVsEpd:            serverResult.diffVsEpd            as number,
           status:               serverResult.status               as 'above' | 'below' | 'equal',
           isDefaultUsed:        serverResult.isDefaultUsed        as boolean,
-          calculationMethod:    serverResult.calculationMethod    as string,
+          calculationMethod:    serverResult.calculationMethod    as 'actual_data' | 'epd_benchmark' | 'hybrid',
           dependentEmissions:   serverResult.dependentEmissions   as number,
           independentEmissions: serverResult.independentEmissions as number,
         };
