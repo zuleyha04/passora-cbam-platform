@@ -1,0 +1,23 @@
+[
+  {
+    "id": "c1",
+    "name": "Örnek Demir Çelik A.Ş.",
+    "country": "Türkiye",
+    "facility": "Ereğli Tesisi",
+    "reporting_period": "2025-Q1"
+  },
+  {
+    "id": "c2",
+    "name": "Anadolu Steel Ltd.",
+    "country": "Türkiye",
+    "facility": "İskenderun Tesisi",
+    "reporting_period": "2025-Q1"
+  },
+  {
+    "id": "c3",
+    "name": "Karadeniz Profil A.Ş.",
+    "country": "Türkiye",
+    "facility": "Trabzon Tesisi",
+    "reporting_period": "2025-Q1"
+  }
+]

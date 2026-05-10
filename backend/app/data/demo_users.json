@@ -1,0 +1,18 @@
+[
+  {
+    "id": "u1",
+    "name": "Passora Admin",
+    "email": "admin@passora.com",
+    "password": "admin123",
+    "role": "admin",
+    "company_id": null
+  },
+  {
+    "id": "u2",
+    "name": "Ahmet Yılmaz",
+    "email": "user@passora.com",
+    "password": "user123",
+    "role": "company_user",
+    "company_id": "c1"
+  }
+]

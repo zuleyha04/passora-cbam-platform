@@ -1,0 +1,42 @@
+[
+  {
+    "id": "s0",
+    "name": "Current Supplier",
+    "material": "Billet",
+    "emission_factor_tco2e_per_ton": 2.10,
+    "price_per_ton": 500,
+    "has_epd": false,
+    "amount_ton": 1020,
+    "is_current": true
+  },
+  {
+    "id": "s1",
+    "name": "Supplier A",
+    "material": "Billet",
+    "emission_factor_tco2e_per_ton": 1.85,
+    "price_per_ton": 520,
+    "has_epd": true,
+    "amount_ton": 1020,
+    "is_current": false
+  },
+  {
+    "id": "s2",
+    "name": "Supplier B",
+    "material": "Billet",
+    "emission_factor_tco2e_per_ton": 1.55,
+    "price_per_ton": 560,
+    "has_epd": true,
+    "amount_ton": 1020,
+    "is_current": false
+  },
+  {
+    "id": "s3",
+    "name": "Supplier C",
+    "material": "Billet",
+    "emission_factor_tco2e_per_ton": 2.40,
+    "price_per_ton": 480,
+    "has_epd": false,
+    "amount_ton": 1020,
+    "is_current": false
+  }
+]
