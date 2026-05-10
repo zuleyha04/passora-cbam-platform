@@ -15,24 +15,24 @@ export default function Sidebar() {
   const { company, period, etsPrice, recommendations } = useAppSelector(s => s.cbam);
 
   return (
-    <aside className="w-60 min-h-screen bg-surface border-r border-white/[0.08] flex flex-col px-3 py-5 gap-2 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+    <aside className="w-60 min-h-screen bg-surface border-r border-black/[0.08] flex flex-col px-3 py-5 gap-2 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-2 pb-4 mb-1 border-b border-white/[0.08]">
+      <div className="flex items-center gap-2.5 px-2 pb-4 mb-1 border-b border-black/[0.08]">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-lg flex-shrink-0 shadow-primary"
           style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}>
           P
         </div>
         <div>
-          <div className="font-extrabold text-sm tracking-widest text-slate-100">PASSORA</div>
+          <div className="font-extrabold text-sm tracking-widest text-slate-900">PASSORA</div>
           <div className="text-[10px] text-slate-500 uppercase tracking-wider">CBAM Platform</div>
         </div>
       </div>
 
       {/* Company chip */}
-      <div className="flex items-center gap-2.5 bg-surface-2 border border-white/[0.08] rounded-lg px-3 py-2.5 mb-1">
+      <div className="flex items-center gap-2.5 bg-surface-2 border border-black/[0.08] rounded-lg px-3 py-2.5 mb-1">
         <span className="text-xl">🏭</span>
         <div className="min-w-0">
-          <div className="text-xs font-semibold text-slate-200 truncate">{company.name}</div>
+          <div className="text-xs font-semibold text-slate-800 truncate">{company.name}</div>
           <div className="text-[10px] text-slate-500">{company.city} · {period}</div>
         </div>
       </div>
@@ -45,7 +45,7 @@ export default function Sidebar() {
               `flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
                ${isActive
                 ? 'bg-blue-500/12 text-primary font-semibold'
-                : 'text-slate-400 hover:bg-surface-2 hover:text-slate-200'}`
+                : 'text-slate-600 hover:bg-surface-2 hover:text-slate-800'}`
             }>
             {({ isActive }) => (
               <>
@@ -76,7 +76,7 @@ export default function Sidebar() {
       </div>
 
       {/* Footer */}
-      <div className="pt-2 border-t border-white/[0.08] mt-1">
+      <div className="pt-2 border-t border-black/[0.08] mt-1">
         <div className="text-[10px] text-slate-600 leading-relaxed">CBAM Reg. (EU) 2023/956</div>
         <div className="text-[10px] text-slate-600">v1.0 · {new Date().getFullYear()}</div>
       </div>

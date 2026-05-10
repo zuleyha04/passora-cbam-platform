@@ -9,13 +9,13 @@ export default {
       colors: {
         // PASSORA design tokens
         bg: {
-          DEFAULT: '#0a0f1e',
-          2: '#0d1426',
+          DEFAULT: '#f8fafc',
+          2: '#f1f5f9',
         },
         surface: {
-          DEFAULT: '#111827',
-          2: '#1a2235',
-          3: '#1f2d42',
+          DEFAULT: '#ffffff',
+          2: '#f8fafc',
+          3: '#f1f5f9',
         },
         primary: {
           DEFAULT: '#3b82f6',
@@ -49,11 +49,11 @@ export default {
         'grad-primary': 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
         'grad-accent': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
         'grad-danger': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-        'grad-hero': 'linear-gradient(135deg, #0a0f1e 0%, #0d1426 50%, #111827 100%)',
+        'grad-hero': 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ffffff 100%)',
       },
       borderColor: {
-        subtle: 'rgba(99,130,180,0.15)',
-        medium: 'rgba(99,130,180,0.25)',
+        subtle: 'rgba(0,0,0,0.08)',
+        medium: 'rgba(0,0,0,0.15)',
       },
       animation: {
         'fade-in': 'fadeIn 0.4s ease forwards',

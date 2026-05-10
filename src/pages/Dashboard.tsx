@@ -56,7 +56,7 @@ export default function Dashboard() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-gradient">CBAM Dashboard</h1>
-          <p className="text-sm text-slate-400 mt-1">{company.name} · {period} · {company.city}</p>
+          <p className="text-sm text-slate-600 mt-1">{company.name} · {period} · {company.city}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="badge badge-accent">🟢 Aktif: {period}</span>
@@ -83,7 +83,7 @@ export default function Dashboard() {
         {/* EPD */}
         <div className="stat-card">
           <div className="stat-label">EPD Durumu</div>
-          <div className={`stat-value ${result?.status === 'above' ? 'text-red-400' : result?.status === 'below' ? 'text-emerald-400' : 'text-slate-400'}`}>
+          <div className={`stat-value ${result?.status === 'above' ? 'text-red-400' : result?.status === 'below' ? 'text-emerald-400' : 'text-slate-600'}`}>
             {result ? (result.status === 'above' ? '▲ Üstünde' : '▼ Altında') : '—'}
           </div>
           <div className="stat-unit">Kardemir EPD: 2.29 tCO₂e/ton</div>
@@ -115,7 +115,7 @@ export default function Dashboard() {
       {/* Charts */}
       <div className="grid grid-cols-2 gap-4">
         <div className="card">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">📈 Çeyreklik CBAM Maliyet Trendi</div>
+          <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">📈 Çeyreklik CBAM Maliyet Trendi</div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={trendData}>
               <defs>
@@ -137,7 +137,7 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">📊 Sektör Benchmark Karşılaştırması</div>
+          <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">📊 Sektör Benchmark Karşılaştırması</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={benchmarkData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
@@ -158,7 +158,7 @@ export default function Dashboard() {
       {/* Breakdown (if calculated) */}
       {result && (
         <div className="card">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">🔬 Emisyon Bileşen Analizi</div>
+          <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">🔬 Emisyon Bileşen Analizi</div>
           <div className="grid grid-cols-2 gap-6">
             <div className="flex flex-col gap-3">
               {[
@@ -170,11 +170,11 @@ export default function Dashboard() {
                 const pct = result.totalEmbedded > 0 ? (d.value / result.totalEmbedded) * 100 : 0;
                 return (
                   <div key={i} className="grid grid-cols-[120px_1fr_60px_40px] items-center gap-2">
-                    <div className="text-xs text-slate-400 truncate">{d.label}</div>
+                    <div className="text-xs text-slate-600 truncate">{d.label}</div>
                     <div className="progress-track">
                       <div className="progress-fill" style={{ width: `${pct}%`, background: d.color }} />
                     </div>
-                    <div className="text-xs font-mono text-slate-200 text-right">{d.value.toFixed(2)}</div>
+                    <div className="text-xs font-mono text-slate-800 text-right">{d.value.toFixed(2)}</div>
                     <div className="text-[10px] text-slate-500 text-right">{pct.toFixed(1)}%</div>
                   </div>
                 );
@@ -185,9 +185,9 @@ export default function Dashboard() {
                 { label: '🔗 Bağımlı Emisyon', value: result.dependentEmissions, hint: 'Grid elektrik' },
                 { label: '🔋 Bağımsız Emisyon', value: result.independentEmissions, hint: 'Yerinde üretim' },
               ].map((d, i) => (
-                <div key={i} className="bg-surface-2 border border-white/[0.08] rounded-lg p-3">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{d.label}</div>
-                  <div className="text-lg font-bold font-mono text-slate-100 my-1">{d.value.toFixed(4)} tCO₂e</div>
+                <div key={i} className="bg-surface-2 border border-black/[0.08] rounded-lg p-3">
+                  <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{d.label}</div>
+                  <div className="text-lg font-bold font-mono text-slate-900 my-1">{d.value.toFixed(4)} tCO₂e</div>
                   <div className="text-[10px] text-slate-500">{d.hint}</div>
                 </div>
               ))}
@@ -198,17 +198,17 @@ export default function Dashboard() {
 
       {/* Process Steps */}
       <div className="card">
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">🗺️ CBAM Uyum Süreci</div>
+        <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">🗺️ CBAM Uyum Süreci</div>
         <div className="flex items-start overflow-x-auto pb-2 gap-0">
           {CBAM_STEPS.map((step, i) => (
             <div key={i} className="flex items-center">
               <div className="flex flex-col items-center text-center min-w-[100px]">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mb-2
-                  ${step.done ? 'text-white shadow-accent' : 'bg-surface-2 text-slate-500 border border-white/[0.08]'}`}
+                  ${step.done ? 'text-white shadow-accent' : 'bg-surface-2 text-slate-500 border border-black/[0.08]'}`}
                   style={step.done ? { background: 'linear-gradient(135deg,#10b981,#059669)' } : {}}>
                   {step.done ? '✓' : step.n}
                 </div>
-                <div className="text-xs font-semibold text-slate-200">{step.label}</div>
+                <div className="text-xs font-semibold text-slate-800">{step.label}</div>
               </div>
               {i < CBAM_STEPS.length - 1 && (
                 <div className="text-slate-600 mx-1 mt-[-18px] text-sm">→</div>
@@ -221,11 +221,11 @@ export default function Dashboard() {
       {/* Bottom Row */}
       <div className="grid grid-cols-2 gap-4">
         <div className="card">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">🌍 CBAM Kapsamındaki Sektörler</div>
+          <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">🌍 CBAM Kapsamındaki Sektörler</div>
           <div className="flex flex-wrap gap-2 mb-4">
             {CBAM_SECTORS.map((s, i) => (
               <div key={i} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border
-                ${s.active ? 'bg-blue-500/10 border-blue-500/25 text-blue-300' : 'bg-surface-2 border-white/[0.08] text-slate-400'}`}>
+                ${s.active ? 'bg-blue-500/10 border-blue-500/25 text-blue-300' : 'bg-surface-2 border-black/[0.08] text-slate-600'}`}>
                 <span>{s.icon}</span><span>{s.label}</span>
                 {s.active && <span className="bg-primary text-white text-[9px] px-1.5 py-0.5 rounded-full">Aktif</span>}
               </div>
@@ -233,7 +233,7 @@ export default function Dashboard() {
           </div>
           <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-lg p-3">
             <div className="text-xs font-bold text-emerald-400 mb-2">🇪🇺 Green Deal ↔ CBAM</div>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               AB'nin 2050 Karbon Nötr hedefi kapsamında CBAM, ithal ürünlerdeki gömülü emisyonu
               EU ETS fiyatı üzerinden sertifika alınarak dengeler.
               <strong className="text-primary"> Türkiye'nin %70 EAF </strong>
@@ -243,7 +243,7 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">📌 Önemli Tarihler</div>
+          <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">📌 Önemli Tarihler</div>
           <div className="flex flex-col gap-3">
             {[
               { date: '01.01.2026', event: 'Kesin Rejim Başlangıcı', color: '#10b981' },
@@ -255,7 +255,7 @@ export default function Dashboard() {
                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: t.color }} />
                 <div>
                   <div className="text-[10px] font-mono text-slate-500">{t.date}</div>
-                  <div className="text-sm font-semibold text-slate-200">{t.event}</div>
+                  <div className="text-sm font-semibold text-slate-800">{t.event}</div>
                 </div>
               </div>
             ))}

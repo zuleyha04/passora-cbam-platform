@@ -27,7 +27,7 @@ export default function History() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-100">🕑 Hesaplama Geçmişi</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900">🕑 Hesaplama Geçmişi</h1>
           <p className="text-xs text-slate-500 mt-1">Supabase PostgreSQL · {company.name} firmasi kayıtları</p>
         </div>
         <div className="flex gap-2">
@@ -64,11 +64,11 @@ export default function History() {
       {isError && (
         <div className="card text-center py-16">
           <div className="text-4xl mb-4">🗄️</div>
-          <div className="text-slate-300 font-semibold mb-2">Supabase bağlantısı kurulamadı</div>
+          <div className="text-slate-700 font-semibold mb-2">Supabase bağlantısı kurulamadı</div>
           <div className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
             Lütfen proje kök dizininde bir <code className="bg-surface-2 px-1.5 py-0.5 rounded text-primary">.env</code> dosyası oluşturun:
           </div>
-          <pre className="bg-bg border border-white/[0.08] rounded-xl px-6 py-4 text-sm font-mono text-emerald-400 text-left inline-block">
+          <pre className="bg-bg border border-black/[0.08] rounded-xl px-6 py-4 text-sm font-mono text-emerald-400 text-left inline-block">
 {`VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGci...`}
           </pre>
@@ -132,8 +132,8 @@ VITE_SUPABASE_ANON_KEY=eyJhbGci...`}
           {selected ? (
             <div className="card flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">📋 Detay</div>
-                <button className="text-slate-500 hover:text-slate-300 text-lg" onClick={() => setSelected(null)}>✕</button>
+                <div className="text-xs font-bold text-slate-600 uppercase tracking-wider">📋 Detay</div>
+                <button className="text-slate-500 hover:text-slate-700 text-lg" onClick={() => setSelected(null)}>✕</button>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -150,9 +150,9 @@ VITE_SUPABASE_ANON_KEY=eyJhbGci...`}
                   ['Yöntem', selected.is_default_used ? '⚠️ Default' : '✅ Gerçek Veri'],
                   ['Şehir', selected.city],
                 ].map(([k,v],i) => (
-                  <div key={i} className="flex justify-between text-xs text-slate-400 py-1.5 border-b border-white/[0.05] last:border-0">
+                  <div key={i} className="flex justify-between text-xs text-slate-600 py-1.5 border-b border-black/[0.05] last:border-0">
                     <span>{k}</span>
-                    <strong className="font-mono text-slate-200">{v}</strong>
+                    <strong className="font-mono text-slate-800">{v}</strong>
                   </div>
                 ))}
               </div>
@@ -192,8 +192,8 @@ VITE_SUPABASE_ANON_KEY=eyJhbGci...`}
 
       {/* Schema hint */}
       <div className="card bg-surface-glow border-blue-500/20">
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">🗄️ Supabase Kurulum Rehberi</div>
-        <ol className="text-xs text-slate-400 flex flex-col gap-2 list-decimal list-inside">
+        <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">🗄️ Supabase Kurulum Rehberi</div>
+        <ol className="text-xs text-slate-600 flex flex-col gap-2 list-decimal list-inside">
           <li><a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-primary">supabase.com</a>'da ücretsiz proje oluştur</li>
           <li>SQL Editor'de <code className="bg-surface-2 px-1 rounded">supabase/schema.sql</code> dosyasını çalıştır</li>
           <li>Project Settings → API → URL ve anon key'i kopyala</li>

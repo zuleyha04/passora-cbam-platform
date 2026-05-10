@@ -93,7 +93,7 @@ export default function Calculator() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-100">⚗ Emisyon Hesaplayıcı</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900">⚗ Emisyon Hesaplayıcı</h1>
           <p className="text-xs text-slate-500 mt-1">CBAM Reg. (EU) 2023/956 · passora_cbam_steel_calculator metodolojisi</p>
         </div>
         <div className="flex items-end gap-2 flex-wrap">
@@ -139,7 +139,7 @@ export default function Calculator() {
       {/* ── Fuel ── */}
       {tab === 'fuel' && (
         <div className="card">
-          <div className="font-semibold text-slate-200 mb-1">1) Doğrudan Emisyon — Yakıt / Proses</div>
+          <div className="font-semibold text-slate-800 mb-1">1) Doğrudan Emisyon — Yakıt / Proses</div>
           <div className="text-xs font-mono text-slate-500 mb-3">Formül: Miktar × NCV × EF × Oksidasyon × (1 − Biomass)</div>
           <div className="alert alert-info mb-4"><span>ℹ️</span> NCV ve EF değerleri IPCC 2006 ve AB MRR metodolojisine dayanır.</div>
           <div className="table-wrap">
@@ -186,11 +186,11 @@ export default function Calculator() {
       {/* ── Electricity ── */}
       {tab === 'electricity' && (
         <div className="card">
-          <div className="font-semibold text-slate-200 mb-1">2) Dolaylı Emisyon — Elektrik</div>
+          <div className="font-semibold text-slate-800 mb-1">2) Dolaylı Emisyon — Elektrik</div>
           <div className="text-xs font-mono text-slate-500 mb-3">Türkiye Grid: 0.4437 tCO₂e/MWh · Kardemir EPD: Yerinde 1.8 / Grid 0.91 kgCO₂e/kWh</div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-surface-2 border border-white/[0.08] rounded-xl p-4 flex flex-col gap-3">
-              <div className="text-xs font-bold text-slate-400">🔌 Toplam Elektrik (Ort. EF)</div>
+            <div className="bg-surface-2 border border-black/[0.08] rounded-xl p-4 flex flex-col gap-3">
+              <div className="text-xs font-bold text-slate-600">🔌 Toplam Elektrik (Ort. EF)</div>
               <div className="flex flex-col gap-1">
                 <label className="form-label">Toplam kWh</label>
                 <input type="number" className="form-input font-mono" value={electricity.totalKwh}
@@ -203,8 +203,8 @@ export default function Calculator() {
                   onChange={e => dispatch(setElectricity({ avgEf: +e.target.value }))} />
               </div>
             </div>
-            <div className="bg-surface-2 border border-white/[0.08] rounded-xl p-4 flex flex-col gap-3">
-              <div className="text-xs font-bold text-slate-400">🏭 Yerinde / Grid Ayrımı</div>
+            <div className="bg-surface-2 border border-black/[0.08] rounded-xl p-4 flex flex-col gap-3">
+              <div className="text-xs font-bold text-slate-600">🏭 Yerinde / Grid Ayrımı</div>
               {[
                 { label: 'Yerinde (kWh)', key: 'onsiteKwh' as const, ef: 'onsiteEf' as const },
                 { label: 'Grid (kWh)',    key: 'gridKwh'   as const, ef: 'gridEf'   as const },
@@ -224,7 +224,7 @@ export default function Calculator() {
               ))}
             </div>
           </div>
-          <div className="mt-4 bg-surface-2 border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-slate-400">
+          <div className="mt-4 bg-surface-2 border border-black/[0.08] rounded-lg px-4 py-3 text-sm text-slate-600">
             Hesaplanan elektrik emisyonu:{' '}
             <strong className="font-mono text-primary">
               {electricity.totalKwh > 0
@@ -239,7 +239,7 @@ export default function Calculator() {
       {/* ── Precursor ── */}
       {tab === 'precursor' && (
         <div className="card">
-          <div className="font-semibold text-slate-200 mb-1">3) Precursor / Hammadde Gömülü Emisyonları</div>
+          <div className="font-semibold text-slate-800 mb-1">3) Precursor / Hammadde Gömülü Emisyonları</div>
           <div className="text-xs font-mono text-slate-500 mb-3">Formül: Miktar (ton) × EF (tCO₂e/ton)</div>
           <div className="alert alert-info mb-4"><span>ℹ️</span> Çelik billet tipik EF: 2.1 tCO₂e/ton. Tedarikçiden EPD belgesi alın.</div>
           <table className="data-table">
@@ -268,9 +268,9 @@ export default function Calculator() {
       {/* ── Transport ── */}
       {tab === 'transport' && (
         <div className="card">
-          <div className="font-semibold text-slate-200 mb-1">4) Taşıma Emisyonları — DEFRA EF</div>
+          <div className="font-semibold text-slate-800 mb-1">4) Taşıma Emisyonları — DEFRA EF</div>
           <div className="text-xs font-mono text-slate-500 mb-3">Formül: Kütle × Mesafe × EF / 1000 = tCO₂e</div>
-          <div className="bg-blue-500/5 border border-blue-500/15 rounded-lg px-4 py-2.5 font-mono text-xs text-slate-400 mb-4">
+          <div className="bg-blue-500/5 border border-blue-500/15 rounded-lg px-4 py-2.5 font-mono text-xs text-slate-600 mb-4">
             DEFRA: Karayolu 0.062 · Demiryolu 0.022 · Deniz 0.011 · Hava 1.020 kgCO₂e/t-km
           </div>
           <table className="data-table">
@@ -305,7 +305,7 @@ export default function Calculator() {
       {tab === 'results' && (
         <div className="flex flex-col gap-4">
           {!result ? (
-            <div className="card text-center py-16 text-slate-400">
+            <div className="card text-center py-16 text-slate-600">
               <div className="text-5xl mb-3">⚗</div>
               <div className="mb-4">Henüz hesaplama yapılmadı.</div>
               <button className="btn btn-primary" onClick={handleCalculate}>Hesapla</button>
@@ -322,14 +322,14 @@ export default function Calculator() {
                   { label: 'Dolaylı (Elektrik)',   val: formatTCO2(result.electricity),    col: 'text-emerald-400' },
                   { label: 'Precursor',            val: formatTCO2(result.precursorTotal), col: 'text-amber-400' },
                   { label: 'Taşıma',              val: formatTCO2(result.transportTotal), col: 'text-purple-400' },
-                  { label: 'TOPLAM Emisyon',       val: formatTCO2(result.totalEmbedded),  col: 'text-slate-100', span: 2 },
+                  { label: 'TOPLAM Emisyon',       val: formatTCO2(result.totalEmbedded),  col: 'text-slate-900', span: 2 },
                   { label: 'Spesifik Emisyon',     val: `${result.specificEmbedded.toFixed(6)} tCO₂e/ton`, col: 'text-primary', span: 2 },
                   { label: 'EPD Benchmark',        val: `${result.epdBenchmarkSpecific} tCO₂e/ton`,         col: 'text-purple-400' },
                   { label: 'EPD Farkı',            val: `${result.diffVsEpd > 0 ? '+' : ''}${result.diffVsEpd.toFixed(6)}`, col: result.status === 'above' ? 'text-red-400' : 'text-emerald-400' },
                   { label: 'CBAM Sertifika',       val: `${formatNum(result.certificatesRequired, 2)} adet`, col: 'text-amber-400' },
                   { label: 'CBAM Maliyet',         val: formatEur(result.cbamCostEur), col: 'text-red-400', span: 2 },
-                  { label: 'Bağımlı (Grid)',        val: formatTCO2(result.dependentEmissions), col: 'text-slate-400' },
-                  { label: 'Bağımsız',             val: formatTCO2(result.independentEmissions), col: 'text-slate-400' },
+                  { label: 'Bağımlı (Grid)',        val: formatTCO2(result.dependentEmissions), col: 'text-slate-600' },
+                  { label: 'Bağımsız',             val: formatTCO2(result.independentEmissions), col: 'text-slate-600' },
                 ].map((r, i) => (
                   <div key={i} className={`stat-card ${(r as { span?: number }).span === 2 ? 'col-span-2' : ''}`}>
                     <div className="stat-label">{r.label}</div>
@@ -338,8 +338,8 @@ export default function Calculator() {
                 ))}
               </div>
               <div className="card">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">📋 Hesaplama Detayı</div>
-                <pre className="font-mono text-xs text-slate-400 bg-bg border border-white/[0.06] rounded-lg p-4 overflow-x-auto leading-relaxed whitespace-pre-wrap">
+                <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">📋 Hesaplama Detayı</div>
+                <pre className="font-mono text-xs text-slate-600 bg-bg border border-black/[0.06] rounded-lg p-4 overflow-x-auto leading-relaxed whitespace-pre-wrap">
 {`Yakıt: ${formatTCO2(result.directFuel)}
 Elektrik: ${formatTCO2(result.electricity)}
 Precursor: ${formatTCO2(result.precursorTotal)}
