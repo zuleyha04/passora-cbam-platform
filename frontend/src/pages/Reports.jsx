@@ -1,131 +1,223 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../auth/AuthContext'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
 import PageContainer from '../components/layout/PageContainer'
-import { getReports } from '../api/cbamApi'
-import { fmtNum, fmtDate } from '../utils/formatters'
-import { getRiskConfig } from '../utils/riskHelpers'
-import { Download, Copy } from 'lucide-react'
+import { ReportFilters, ReportsTable } from '../components/reports/ReportsComponents'
+import { MOCK_REPORTS } from '../data/mockData'
 
-export default function Reports() {
-  const { user } = useAuth()
-  const [reports, setReports] = useState([])
-  const [selected, setSelected] = useState(null)
-  const [loading, setLoading] = useState(true)
+function normalizeText(value) {
+  return String(value || '')
+    .toLocaleLowerCase('tr-TR')
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .trim()
+}
 
-  useEffect(() => {
-    const companyId = user?.company_id || null
-    getReports(companyId).then(r => {
-      setReports(r)
-      if (r.length > 0) setSelected(r[0])
-    }).catch(console.error).finally(() => setLoading(false))
-  }, [user])
+function getReportCompany(report) {
+  return report.company || report.firma || ''
+}
 
-  function copyJSON() {
-    navigator.clipboard.writeText(JSON.stringify(selected, null, 2))
-    alert('Rapor JSON kopyalandı.')
+function getReportProduct(report) {
+  return report.product || report.urun || ''
+}
+
+function getReportId(report) {
+  return report.id || report.report_id || report.reportId || ''
+}
+
+function getFocusTitle(focus) {
+  if (focus === 'missing-data') {
+    return 'Eksik Veri Takibi'
   }
 
+  if (focus === 'calculation-mode') {
+    return 'Karma Hesaplama Kontrolü'
+  }
+
+  if (focus === 'data-quality') {
+    return 'Veri Kalitesi İncelemesi'
+  }
+
+  if (focus === 'critical-risk') {
+    return 'Kritik Risk İncelemesi'
+  }
+
+  if (focus === 'report-detail') {
+    return 'Rapor Detayı'
+  }
+
+  return 'Odaklı Rapor Görünümü'
+}
+
+function getFocusDescription(focus, company, product) {
+  const targetText = [company, product].filter(Boolean).join(' / ')
+
+  if (focus === 'missing-data') {
+    return `${targetText || 'Seçili kayıt'} için eksik veri alanları kontrol edilmeli ve firmadan tamamlayıcı veri istenmelidir.`
+  }
+
+  if (focus === 'calculation-mode') {
+    return `${targetText || 'Seçili kayıt'} için karma/hybrid hesaplama kullanılmış. Daha doğru sonuç için gerçek tesis verisi talep edilmelidir.`
+  }
+
+  if (focus === 'data-quality') {
+    return `${targetText || 'Seçili kayıt'} için veri kalite skoru düşük. Hesaplama güvenilirliği artırılmalıdır.`
+  }
+
+  if (focus === 'critical-risk') {
+    return `${targetText || 'Seçili kayıt'} için emisyon/risk seviyesi kritik görünüyor. Rapor detayları öncelikli incelenmelidir.`
+  }
+
+  return `${targetText || 'Seçili kayıt'} için dashboard üzerinden yönlendirilen raporlar listeleniyor.`
+}
+
+export default function Reports() {
+  const [searchParams] = useSearchParams()
+  const [filtered, setFiltered] = useState(MOCK_REPORTS)
+
+  const reportId = searchParams.get('reportId')
+  const companyParam = searchParams.get('company')
+  const productParam = searchParams.get('product')
+  const focusParam = searchParams.get('focus')
+
+  const hasDashboardFocus = Boolean(
+    reportId || companyParam || productParam || focusParam
+  )
+
+  const focusedReports = useMemo(() => {
+    if (!hasDashboardFocus) {
+      return MOCK_REPORTS
+    }
+
+    const targetReportId = normalizeText(reportId)
+    const targetCompany = normalizeText(companyParam)
+    const targetProduct = normalizeText(productParam)
+
+    const matched = MOCK_REPORTS.filter((report) => {
+      const currentId = normalizeText(getReportId(report))
+      const currentCompany = normalizeText(getReportCompany(report))
+      const currentProduct = normalizeText(getReportProduct(report))
+
+      const matchesReportId =
+        targetReportId && currentId && currentId === targetReportId
+
+      const matchesCompany =
+        targetCompany && currentCompany.includes(targetCompany)
+
+      const matchesProduct =
+        targetProduct && currentProduct.includes(targetProduct)
+
+      if (targetReportId) return matchesReportId
+      if (targetCompany && targetProduct) return matchesCompany && matchesProduct
+      if (targetCompany) return matchesCompany
+      if (targetProduct) return matchesProduct
+
+      return true
+    })
+
+    return matched.length > 0 ? matched : MOCK_REPORTS
+  }, [hasDashboardFocus, reportId, companyParam, productParam])
+
+  useEffect(() => {
+    setFiltered(focusedReports)
+  }, [focusedReports])
+
   return (
-    <PageContainer title="Raporlar" subtitle="Hesaplama raporlarını görüntüleyin ve dışa aktarın">
-      {loading && <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>Yükleniyor...</p>}
+    <PageContainer
+      title="Raporlar"
+      subtitle="Tüm hesaplama kayıtları, filtreler ve detaylı görünüm"
+    >
+      {hasDashboardFocus && (
+        <div
+          style={{
+            background: '#ECFDF5',
+            border: '1px solid #A7F3D0',
+            borderLeft: '4px solid #0D7A5F',
+            borderRadius: 12,
+            padding: '14px 16px',
+            marginBottom: 16,
+          }}
+        >
+          <p
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#065F46',
+              marginBottom: 4,
+            }}
+          >
+            {getFocusTitle(focusParam)}
+          </p>
 
-      {!loading && reports.length > 0 && (
-        <div style={{ display: 'flex', gap: 20 }}>
-          {/* List */}
-          <div style={{ width: 280, flexShrink: 0 }}>
-            {reports.map(r => {
-              const cfg = getRiskConfig(r.risk_level)
-              const isSelected = selected?.id === r.id
-              return (
-                <div
-                  key={r.id}
-                  onClick={() => setSelected(r)}
-                  style={{
-                    padding: '12px 14px', borderRadius: 8, marginBottom: 8, cursor: 'pointer',
-                    border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    background: isSelected ? 'var(--color-primary-light)' : '#fff',
-                  }}
-                >
-                  <p style={{ fontWeight: 600, fontSize: 13 }}>{r.company_name}</p>
-                  <p style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{r.product_name} · {r.cn_code}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                    <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 4, background: `${cfg.color}20`, color: cfg.color, fontWeight: 700 }}>
-                      {cfg.label}
-                    </span>
-                    <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{fmtDate(r.report_date)}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Detail */}
-          {selected && (
-            <div style={{ flex: 1 }}>
-              <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <h2 style={{ fontSize: 16, fontWeight: 700 }}>{selected.company_name} – {selected.product_name}</h2>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn btn-outline btn-sm" onClick={copyJSON}><Copy size={14} /> JSON Kopyala</button>
-                  </div>
-                </div>
-
-                <div className="grid-2" style={{ marginBottom: 20 }}>
-                  {[
-                    ['CN Kodu', selected.cn_code],
-                    ['Üretim Rotası', selected.production_route],
-                    ['Üretim Miktarı', `${selected.production_amount_ton} ton`],
-                    ['Hesaplama Modu', selected.calculation_mode],
-                    ['Rapor Tarihi', fmtDate(selected.report_date)],
-                    ['Raporlama Dönemi', '2025-Q1'],
-                  ].map(([k, v]) => (
-                    <div key={k} style={{ padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
-                      <p style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{k}</p>
-                      <p style={{ fontSize: 13, fontWeight: 600 }}>{v}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Emisyon Kırılımı</h3>
-                <div className="grid-2" style={{ marginBottom: 20 }}>
-                  {[
-                    ['Yakıt', selected.fuel_emission_tco2e],
-                    ['Elektrik', selected.electricity_emission_tco2e],
-                    ['Precursor', selected.precursor_emission_tco2e],
-                    ['Taşıma', selected.transport_emission_tco2e],
-                    ['Toplam Emisyon', selected.total_emission_tco2e],
-                    ['Ürün Başına', selected.specific_emission_tco2e_per_ton],
-                  ].map(([k, v]) => (
-                    <div key={k} style={{ padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
-                      <p style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{k}</p>
-                      <p style={{ fontSize: 14, fontWeight: 700 }}>{fmtNum(v, 2)} tCO₂e{k === 'Ürün Başına' ? '/ton' : ''}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Benchmark & Risk</h3>
-                <div className="grid-2">
-                  {[
-                    ['EPD Benchmark', '2.29 tCO₂e/ton'],
-                    ['Benchmark Farkı', `${selected.difference_percent > 0 ? '+' : ''}${fmtNum(selected.difference_percent, 1)}%`],
-                    ['Risk Seviyesi', getRiskConfig(selected.risk_level).label],
-                    ['DQ Skoru', `${selected.data_quality_score} / 100`],
-                  ].map(([k, v]) => (
-                    <div key={k} style={{ padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
-                      <p style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{k}</p>
-                      <p style={{ fontSize: 13, fontWeight: 700 }}>{v}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="alert alert-warning" style={{ marginTop: 16, fontSize: 12 }}>
-                  ⚠️ Bu rapor EPD-IES-0023407 benchmark değeri kullanılarak hazırlanmıştır. Nihai CBAM raporlaması için Verifying Authority onayı gerekir.
-                </div>
-              </div>
-            </div>
-          )}
+          <p
+            style={{
+              fontSize: 13,
+              color: '#047857',
+              margin: 0,
+              lineHeight: 1.5,
+            }}
+          >
+            {getFocusDescription(focusParam, companyParam, productParam)}
+          </p>
         </div>
       )}
+
+      <div
+        style={{
+          background: '#fff',
+          border: '1px solid #E2E8F0',
+          borderRadius: 12,
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        }}
+      >
+        <div
+          style={{
+            padding: '18px 22px',
+            borderBottom: '1px solid #F1F5F9',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: 14,
+              gap: 12,
+            }}
+          >
+            <div>
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  marginBottom: 2,
+                }}
+              >
+                Hesaplama Kayıtları
+              </p>
+
+              <p
+                style={{
+                  fontSize: 12,
+                  color: '#94A3B8',
+                }}
+              >
+                {filtered.length} kayıt gösteriliyor
+              </p>
+            </div>
+          </div>
+
+          <ReportFilters reports={focusedReports} onFilter={setFiltered} />
+        </div>
+
+        <ReportsTable reports={filtered} />
+      </div>
     </PageContainer>
   )
 }

@@ -1,16 +1,24 @@
-import Sidebar from './Sidebar'
-import Topbar from './Topbar'
+import RoleBasedSidebar from './RoleBasedSidebar'
 
-export default function PageContainer({ children, title, subtitle }) {
+export default function PageContainer({ title, subtitle, children }) {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Topbar title={title} subtitle={subtitle} />
-        <main style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+    <div className="app-shell">
+      <RoleBasedSidebar />
+
+      <main className="app-main">
+        <header className="app-header">
+          <div>
+            <h1>{title}</h1>
+            {subtitle && <p>{subtitle}</p>}
+          </div>
+
+          <div className="header-user-badge">P</div>
+        </header>
+
+        <section className="app-content">
           {children}
-        </main>
-      </div>
+        </section>
+      </main>
     </div>
   )
 }
