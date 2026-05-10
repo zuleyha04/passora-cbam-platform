@@ -4,11 +4,14 @@
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "22"
+  NODE_VERSION  = "20"
+  NPM_FLAGS     = "--legacy-peer-deps"
 
-# Supabase server-side keys — set these in Netlify Dashboard → Environment Variables
-# SUPABASE_URL = https://xxxx.supabase.co
-# SUPABASE_SERVICE_KEY = eyJhbGci...  (NOT the anon key — this is the secret service role key)
+# Supabase client keys — set these in Netlify Dashboard → Environment Variables
+# VITE_SUPABASE_URL      = https://xxxx.supabase.co
+# VITE_SUPABASE_ANON_KEY = eyJhbGci...  (public anon key)
+# SUPABASE_URL           = https://xxxx.supabase.co
+# SUPABASE_SERVICE_KEY   = eyJhbGci...  (secret service role key — NOT the anon key)
 
 [[redirects]]
   from   = "/api/*"
